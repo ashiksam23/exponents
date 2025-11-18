@@ -9,7 +9,7 @@
     --border-color: #2A2A2A;
     --text-muted: #888888;
     --font-family: 'Inter', sans-serif;
-    --sidebar-width: 240px;
+    --sidebar-width: 280px;
     --sidebar-width-collapsed: 80px;
     --animation-curve: cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -234,6 +234,10 @@ body.sidebar-collapsed .sidebar {
 .sidebar .nav-text {
     white-space: nowrap;
     transition: opacity 0.2s ease;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 body.sidebar-collapsed .logo {
@@ -1029,5 +1033,120 @@ input:checked + .slider:before {
 }
 
 
-/* Printable styles are removed as they are generated dynamically and not needed in the main css */
-.printable-content { display: none; }
+/* --- PRINT STYLES --- */
+@media print {
+    /* General print setup */
+    @page {
+        size: A4;
+        margin: 0.75in;
+    }
+
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Hide all on-screen UI */
+    .sidebar, .main-header, .tabs, .header-actions, .copy-button {
+        display: none !important;
+    }
+
+    /* The main container for our printable content */
+    .printable-package {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Print typography */
+    .printable-package h1 {
+        font-size: 24pt;
+        font-weight: 700;
+        color: #000;
+        border-bottom: 2px solid #E24A37;
+        padding-bottom: 12px;
+        margin-bottom: 24px;
+        page-break-after: avoid;
+    }
+    .printable-package h2 {
+        font-size: 18pt;
+        font-weight: 600;
+        color: #111111;
+        border-left: 4px solid #E24A37;
+        padding-left: 16px;
+        margin: 32px 0 24px;
+        page-break-after: avoid;
+        page-break-before: always;
+    }
+    .printable-package section:first-of-type h2 {
+        page-break-before: auto;
+    }
+
+    .printable-package h3 {
+        font-size: 14pt;
+        font-weight: 600;
+        margin-bottom: 12px;
+        page-break-after: avoid;
+    }
+    
+    .printable-package h4 {
+        font-size: 12pt;
+        font-weight: 600;
+    }
+     .printable-package h5 {
+        font-size: 11pt;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin: 12px 0 8px;
+        color: #333;
+    }
+
+    .printable-package p, .printable-package li, .printable-package div {
+        font-size: 10pt;
+        line-height: 1.5;
+        color: #333;
+    }
+    .printable-package strong, .printable-package b {
+        color: #000;
+    }
+    
+    .printable-package a {
+        color: #0000EE;
+        text-decoration: underline;
+    }
+
+    /* Avoid breaking elements across pages */
+    .printable-package section,
+    .printable-package .prose-block,
+    .printable-package .print-card {
+        page-break-inside: avoid;
+    }
+
+    /* Layouts */
+    .printable-package .prose-block {
+        border: 1px solid #eeeeee;
+        background-color: #fdfdfd !important;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    .printable-package .prose-block p,
+    .printable-package .prose-block li {
+        color: #333 !important;
+    }
+     .printable-package .prose-block strong {
+        color: #000 !important;
+    }
+
+
+    .printable-package .print-card {
+        border: 1px solid #ccc;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    .printable-package hr {
+        border: none;
+        border-top: 1px solid #ccc;
+        margin: 16px 0;
+        page-break-after: avoid;
+    }
+}

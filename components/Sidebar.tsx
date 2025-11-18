@@ -18,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse }) => {
                 </div>
                 <nav className="nav">
                     <ul>
-                        <li className="active">
+                        <li className="active" title="Lead Magnet Generator">
                             <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M24 24L12 12L0 24L12 36L24 24Z" stroke="currentColor" strokeWidth="4" strokeLinejoin="miter"/>
                                 <path d="M24 24L36 12L48 24L36 36L24 24Z" stroke="currentColor" strokeWidth="4" strokeLinejoin="miter"/>

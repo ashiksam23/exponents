@@ -2,9 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import type { PackageData } from '../types';
 import CopyableBlock from './CopyableBlock';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-
 
 interface PackagePageProps {
     packageData: PackageData;
@@ -14,54 +11,48 @@ interface PackagePageProps {
 type Tab = 'audit' | 'results' | 'funnel' | 'gtm';
 
 // A dedicated component to render all package data in a single, print-friendly layout.
-// This ensures that all CSS styles are correctly applied for the PDF conversion.
 const PrintableContent: React.FC<{ packageData: PackageData }> = ({ packageData }) => {
     const { audit, results, funnel, gtm } = packageData;
-    // This component is only for PDF generation and won't be styled by index.css,
-    // so it retains its own minimal styling for the PDF output.
     return (
-        <div className="printable-content" style={{ color: '#111', fontFamily: 'sans-serif', padding: '1in' }}>
-            <style>
-            {`
-                .printable-content h1 { font-size: 28px; border-bottom: 2px solid #E24A37; padding-bottom: 8px; margin-bottom: 24px; }
-                .printable-content h2 { font-size: 20px; border-left: 3px solid #E24A37; padding-left: 12px; margin: 24px 0 16px; }
-                .printable-content h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
-                .printable-content section { margin-bottom: 32px; }
-                .printable-content .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-                .printable-content .prose-block { border: 1px solid #eee; padding: 16px; }
-            `}
-            </style>
+        <div className="printable-package">
             <h1>Your Lead Magnet Package</h1>
             <section>
                 <h2>1. The Audit</h2>
                 <h3>Audit Questions</h3>
-                {audit.questions.map(q => (<div key={q.id}><p><b>{q.id}. {q.text}</b> ({q.type})</p></div>))}
+                {audit.questions.map(q => (
+                    <div key={q.id} className="print-card">
+                        <p><b>{q.id}. {q.text}</b> ({q.type.replace('_', ' ')})</p>
+                        {q.options && q.options.length > 0 && (
+                            <ul>
+                                {q.options.map((opt, index) => <li key={index}>{opt}</li>)}
+                            </ul>
+                        )}
+                    </div>
+                ))}
                 <h3>Scoring Logic</h3>
                 <div className="prose-block" dangerouslySetInnerHTML={{ __html: audit.scoringLogic }} />
             </section>
             <section>
                 <h2>2. The Results</h2>
-                <div className="grid">
-                     <div><h3>Low Score</h3><div className="prose-block" dangerouslySetInnerHTML={{ __html: results.lowScore }} /></div>
-                     <div><h3>Mid Score</h3><div className="prose-block" dangerouslySetInnerHTML={{ __html: results.midScore }} /></div>
-                     <div><h3>High Score</h3><div className="prose-block" dangerouslySetInnerHTML={{ __html: results.highScore }} /></div>
-                </div>
+                 <div><h3>Low Score</h3><div className="prose-block" dangerouslySetInnerHTML={{ __html: results.lowScore }} /></div>
+                 <div><h3>Mid Score</h3><div className="prose-block" dangerouslySetInnerHTML={{ __html: results.midScore }} /></div>
+                 <div><h3>High Score</h3><div className="prose-block" dangerouslySetInnerHTML={{ __html: results.highScore }} /></div>
             </section>
             <section>
                 <h2>3. The Funnel</h2>
                 <h3>Landing Page Copy</h3>
                 <div className="prose-block" dangerouslySetInnerHTML={{ __html: funnel.landingPageCopy }} />
                 <h3>3-Part Email Nurture Sequence</h3>
-                {funnel.emailSequence.map((email, i) => (<div key={i}><h4>Subject: {email.subject}</h4><div className="prose-block" dangerouslySetInnerHTML={{ __html: email.body}}/></div>))}
+                {funnel.emailSequence.map((email, i) => (<div className="print-card" key={i}><h4>Subject: {email.subject}</h4><div className="prose-block" dangerouslySetInnerHTML={{ __html: email.body}}/></div>))}
             </section>
              <section>
                  <h2>4. The GTM Plan</h2>
                  <h3>Organic GTM Ideas</h3>
-                 {gtm.organicIdeas.map((idea, i) => (<div key={i}><h4>{idea.title}</h4><p>{idea.hook}</p></div>))}
+                 {gtm.organicIdeas.map((idea, i) => (<div className="print-card" key={i}><h4>{idea.title}</h4><p>{idea.hook}</p></div>))}
                  <h3>Paid Ad Copy</h3>
-                 {gtm.paidAds.map((ad, i) => (<div key={i}><h4>{ad.platform} Ad</h4><p><b>Headline:</b> {ad.headline}</p><p><b>Body:</b> {ad.body}</p></div>))}
+                 {gtm.paidAds.map((ad, i) => (<div className="print-card" key={i}><h4>{ad.platform} Ad</h4><p><b>Headline:</b> {ad.headline}</p><p><b>Body:</b> {ad.body}</p></div>))}
                  <h3>Paid Ad Optimization</h3>
-                 {gtm.paidAdOptimizations.map((opt, i) => (<div key={i}><h4>{opt.platform}</h4><div className="prose-block"><h5>Targeting</h5><div dangerouslySetInnerHTML={{ __html: opt.targeting }}/><h5>Goals</h5><div dangerouslySetInnerHTML={{ __html: opt.goals }} /></div></div>))}
+                 {gtm.paidAdOptimizations.map((opt, i) => (<div className="print-card" key={i}><h4>{opt.platform} Optimization</h4><h5>Targeting</h5><div className="prose-block" dangerouslySetInnerHTML={{ __html: opt.targeting }}/><hr /><h5>Goals</h5><div className="prose-block" dangerouslySetInnerHTML={{ __html: opt.goals }} /></div>))}
             </section>
         </div>
     );
@@ -94,56 +85,78 @@ const PackagePage: React.FC<PackagePageProps> = ({ packageData, onStartOver }) =
         { id: 'gtm', label: '4. The GTM Plan' },
     ];
 
-    const handleExport = async () => {
+    const handleExport = () => {
         setIsExporting(true);
+    
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        iframe.title = 'Print Content'; 
+    
+        document.body.appendChild(iframe);
+    
+        const printDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!printDoc) {
+            alert("Could not open print view. Please check your browser settings.");
+            setIsExporting(false);
+            document.body.removeChild(iframe);
+            return;
+        }
+    
+        printDoc.open();
+        printDoc.write(`
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <title>Exponent Lead Magnet Package</title>
+                    <link rel="stylesheet" href="index.css">
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                </head>
+                <body>
+                    <div id="print-root"></div>
+                </body>
+            </html>
+        `);
+        printDoc.close();
+    
+        const printRootElement = printDoc.getElementById('print-root');
+        if (printRootElement) {
+            const printRoot = ReactDOM.createRoot(printRootElement);
+            
+            const handlePrint = () => {
+                iframe.contentWindow?.focus();
+                iframe.contentWindow?.print();
+                
+                // Set a timer to clean up, allowing the print dialog to close
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    setIsExporting(false);
+                }, 1000);
+            };
 
-        const pdfContainer = document.createElement('div');
-        pdfContainer.style.position = 'absolute';
-        pdfContainer.style.left = '-9999px';
-        pdfContainer.style.top = '0';
-        pdfContainer.style.width = '8.5in';
-        pdfContainer.style.background = 'white';
-        document.body.appendChild(pdfContainer);
+            // Use a short timeout to ensure all styles and fonts are loaded
+            // before triggering the print dialog.
+            const renderTimeout = setTimeout(() => {
+                handlePrint();
+            }, 500);
 
-        const root = ReactDOM.createRoot(pdfContainer);
-        root.render(<PrintableContent packageData={packageData} />);
+            printRoot.render(
+                <React.StrictMode>
+                    <PrintableContent packageData={packageData} />
+                </React.StrictMode>
+            );
 
-        setTimeout(async () => {
-            try {
-                const canvas = await html2canvas(pdfContainer, { scale: 1 });
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'pt',
-                    format: 'a4',
-                });
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                const ratio = canvasWidth / pdfWidth;
-                const scaledCanvasHeight = canvasHeight / ratio;
-                let heightLeft = scaledCanvasHeight;
-                let position = 0;
-                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, scaledCanvasHeight);
-                heightLeft -= pdfHeight;
-                while (heightLeft > 0) {
-                    position -= pdfHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, scaledCanvasHeight);
-                    heightLeft -= pdfHeight;
-                }
-                pdf.save('exponent-lead-magnet-package.pdf');
-            } catch (error) {
-                console.error("Failed to export PDF:", error);
-                alert("Sorry, there was an error creating the PDF. Please try again.");
-            } finally {
-                root.unmount();
-                document.body.removeChild(pdfContainer);
-                setIsExporting(false);
-            }
-        }, 500);
+        } else {
+             alert("Failed to initialize the print view.");
+             setIsExporting(false);
+             document.body.removeChild(iframe);
+        }
     };
+    
 
     const renderContent = () => {
         switch (activeTab) {
